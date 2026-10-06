@@ -1,0 +1,54 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 29983163175
+  starting_time:
+    nanoseconds_since_epoch: 0
+  message_count: 10792
+  topics_with_message_count:
+    - topic_metadata:
+        name: /blueboat/control/thrust_command
+        type: blueboat_control_msgs/msg/BlueboatThrustCommand
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 2698
+    - topic_metadata:
+        name: /localization/path
+        type: nav_msgs/msg/Path
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 2698
+    - topic_metadata:
+        name: /localization/twist
+        type: geometry_msgs/msg/TwistStamped
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 2698
+    - topic_metadata:
+        name: /localization/pose
+        type: geometry_msgs/msg/PoseStamped
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 2698
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - nominal_surge_0.mcap
+  files:
+    - path: nominal_surge_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 0
+      duration:
+        nanoseconds: 29983163175
+      message_count: 21584
+  custom_data: ~
+  ros_distro: jazzy

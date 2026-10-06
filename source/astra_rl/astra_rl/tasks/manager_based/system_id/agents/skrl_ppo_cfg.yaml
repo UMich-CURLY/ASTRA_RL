@@ -1,0 +1,103 @@
+seed: 2
+
+
+# Models are instantiated using skrl's model instantiator utility
+# https://skrl.readthedocs.io/en/latest/api/utils/model_instantiators.html
+models:
+  separate: True
+  policy:
+    # https://skrl.readthedocs.io/en/latest/api/utils/model_instantiators.html#skrl.utils.model_instantiators.torch.gaussian_model
+    class: GaussianMixin
+    clip_actions: False
+    clip_log_std: True    # prevents exploding exploration
+    min_log_std: -20.0    # lowest allowed uncertainty  (smaller = more deterministic)
+    max_log_std: 1.0      # highest allowed uncertainty (higher = more random)
+    initial_log_std: 0.0  # exploitation (< 0) vs exploration (> 0)
+    network:
+      - name: net
+        input: OBSERVATIONS
+        layers:
+          - linear: 256
+          - linear: 128
+        activations: elu
+    output: ACTIONS
+  value:
+    # https://skrl.readthedocs.io/en/latest/api/utils/model_instantiators.html#skrl.utils.model_instantiators.torch.deterministic_model
+    class: DeterministicMixin
+    clip_actions: False
+    network:
+      - name: net
+        input: STATES
+        layers:
+          - linear: 256
+          - linear: 128
+        activations: elu
+    output: ONE
+
+
+# Rollout memory
+# https://skrl.readthedocs.io/en/latest/api/memories/random.html
+memory:
+  class: RandomMemory
+  memory_size: -1  # equal to agent:rollouts (required by PPO)
+
+
+# PPO agent configuration (field names are from PPO_DEFAULT_CONFIG)
+# https://skrl.readthedocs.io/en/latest/api/agents/ppo.html
+agent:
+  class: PPO
+
+  # GAE params
+  discount_factor: 1.0    # future rewards (1.0) vs immediate (0.0)
+  gae_lambda:      0.95   # TD(lambda) coefficient for GAE
+
+  # update iteration params
+  rollouts:        512  # collection steps between updates
+  learning_epochs: 5    # learning epochs during updates
+  mini_batches:    16   # mini batches to sample when updating
+
+  # clipping / scaling / early-stop during update
+  kl_threshold:       0.02   # KL-divergence threshold for early stopping
+  entropy_loss_scale: 0.01   # entropy loss scaling factor
+  ratio_clip:         0.20   # coefficient for clipped surrogate objective
+  value_clip:         0.20   # coefficient for predicted value clipping
+  value_loss_scale:   1.00   # value loss scaling factor
+  grad_norm_clip:     0.50   # coefficient for global norm gradient clipping
+
+  # Learning rate / learning timesteps
+  learning_rate: 3.0e-04  # lr for policy and value network
+  # https://skrl.readthedocs.io/en/latest/api/resources/schedulers.html#learning-rate-schedulers
+  learning_rate_scheduler: null
+  # learning_rate_scheduler: KLAdaptiveLR
+  # learning_rate_scheduler_kwargs: {"kl_threshold": 0.01}
+  learning_starts:  0  # steps before calling update
+  random_timesteps: 0  # random exploration steps before sampling policy actions
+
+  # misc skrl PPO params
+  time_limit_bootstrap: False  # Turn finite MDP to infinite-horizon (negative correlation)
+
+  # Preprocessors for observation, state, and value
+  # https://skrl.readthedocs.io/en/latest/api/resources/preprocessors/running_standard_scaler.html
+  observation_preprocessor: RunningStandardScaler
+  observation_preprocessor_kwargs: {"size": env.observation_space, "device": device}
+  state_preprocessor: RunningStandardScaler
+  state_preprocessor_kwargs: {"size": env.state_space, "device": device}
+  value_preprocessor: RunningStandardScaler
+  value_preprocessor_kwargs: {"size": 1, "device": device}
+
+  # logging and checkpoint
+  experiment:
+    directory: "system_id"
+    experiment_name: ""
+    write_interval: 512  # same as rollouts
+    checkpoint_interval: auto
+    wandb: True
+    wandb_kwargs: {"sync_tensorboard": False}
+
+
+# Sequential trainer
+# https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
+trainer:
+  class: SequentialTrainer
+  timesteps: 1024000  # default if "--max_iterations=" isn't used
+  environment_info: log
